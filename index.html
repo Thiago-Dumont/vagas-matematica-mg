@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>Consulta de vagas</title>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<style>
+
+body{
+font-family:Arial;
+margin:40px;
+}
+
+table{
+border-collapse:collapse;
+width:100%;
+margin-top:20px;
+}
+
+th,td{
+border:1px solid #ccc;
+padding:8px;
+}
+
+th{
+background:#eee;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>Consulta de vagas de Matemática</h2>
+
+<label>Escolha o turno:</label>
+
+<select id="turno">
+
+<option value="todos">Todos</option>
+<option value="Manhã">Manhã</option>
+<option value="Tarde">Tarde</option>
+<option value="Noite">Noite</option>
+
+</select>
+
+<button onclick="buscar()">Buscar</button>
+
+<table id="tabela">
+
+<tr>
+<th>Escola</th>
+<th>Turno</th>
+<th>Quantidade de vagas</th>
+</tr>
+
+</table>
+
+<script>
+
+async function buscar(){
+
+let turno=document.getElementById("turno").value
+
+let resposta=await fetch("vagas_metropolitanaC_2026_corrigido (1).xlsx")
+
+let dados=await resposta.arrayBuffer()
+
+let workbook=XLSX.read(dados)
+
+let sheet=workbook.Sheets[workbook.SheetNames[0]]
+
+let linhas=XLSX.utils.sheet_to_json(sheet,{header:1})
+
+let contagem={}
+
+for(let i=1;i<linhas.length;i++){
+
+let escola=linhas[i][1]
+let turnoLinha=linhas[i][3]
+
+if(turno=="todos" || turnoLinha==turno){
+
+let chave=escola+"-"+turnoLinha
+
+if(!contagem[chave]) contagem[chave]=0
+
+contagem[chave]++
+
+}
+
+}
+
+let tabela=document.getElementById("tabela")
+
+tabela.innerHTML="<tr><th>Escola</th><th>Turno</th><th>Vagas</th></tr>"
+
+for(let chave in contagem){
+
+let partes=chave.split("-")
+
+tabela.innerHTML+=`
+<tr>
+<td>${partes[0]}</td>
+<td>${partes[1]}</td>
+<td>${contagem[chave]}</td>
+</tr>
+`
+
+}
+
+}
+
+</script>
+
+</body>
+</html>
