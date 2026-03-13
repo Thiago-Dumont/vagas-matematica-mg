@@ -81,11 +81,19 @@ background:#eee;
 }
 
 .badge{
-background:#2ecc71;
 color:white;
-padding:4px 8px;
-border-radius:6px;
+padding:4px 10px;
+border-radius:8px;
 font-size:12px;
+font-weight:bold;
+}
+
+.cargo{
+background:#27ae60;
+}
+
+.substituicao{
+background:#e67e22;
 }
 
 .rank{
@@ -175,7 +183,7 @@ border-radius:10px;
 
 <tr>
 <th>Escola</th>
-<th>Total de vagas</th>
+<th>Total</th>
 </tr>
 
 </table>
@@ -273,12 +281,14 @@ for(let chave in contagem){
 
 let p=chave.split("|")
 
+let classe=p[2]=="Cargo Vago"?"cargo":"substituicao"
+
 tabela.innerHTML+=`
 
 <tr>
 <td>${p[0]}</td>
 <td>${p[1]}</td>
-<td><span class="badge">${p[2]}</span></td>
+<td><span class="badge ${classe}">${p[2]}</span></td>
 <td>${contagem[chave]}</td>
 </tr>
 
