@@ -5,7 +5,7 @@
 
 <meta charset="UTF-8">
 
-<title>Consulta de vagas</title>
+<title>Consulta de Vagas - Matemática MG</title>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
@@ -16,19 +16,34 @@ font-family:Arial;
 margin:40px;
 }
 
+h2{
+margin-bottom:20px;
+}
+
+select{
+padding:8px;
+font-size:16px;
+}
+
+button{
+padding:8px 12px;
+font-size:16px;
+}
+
 table{
+margin-top:20px;
 border-collapse:collapse;
 width:100%;
-margin-top:20px;
 }
 
 th,td{
 border:1px solid #ccc;
 padding:8px;
+text-align:left;
 }
 
 th{
-background:#eee;
+background:#f0f0f0;
 }
 
 </style>
@@ -39,7 +54,7 @@ background:#eee;
 
 <h2>Consulta de vagas de Matemática</h2>
 
-<label>Escolha o turno:</label>
+<label>Turno:</label>
 
 <select id="turno">
 
@@ -57,6 +72,7 @@ background:#eee;
 <tr>
 <th>Escola</th>
 <th>Turno</th>
+<th>Natureza</th>
 <th>Quantidade de vagas</th>
 </tr>
 
@@ -66,7 +82,7 @@ background:#eee;
 
 async function buscar(){
 
-let turno=document.getElementById("turno").value
+let turnoEscolhido=document.getElementById("turno").value
 
 let resposta=await fetch("vagas_metropolitanaC_2026_corrigido (1).xlsx")
 
@@ -82,14 +98,19 @@ let contagem={}
 
 for(let i=1;i<linhas.length;i++){
 
-let escola=linhas[i][1]
-let turnoLinha=linhas[i][3]
+let linha=linhas[i]
 
-if(turno=="todos" || turnoLinha==turno){
+let escola=linha[1]
+let turno=linha[3]
+let natureza=linha[4]
 
-let chave=escola+"-"+turnoLinha
+if(turnoEscolhido=="todos" || turno==turnoEscolhido){
 
-if(!contagem[chave]) contagem[chave]=0
+let chave=escola+"|"+turno+"|"+natureza
+
+if(!contagem[chave]){
+contagem[chave]=0
+}
 
 contagem[chave]++
 
@@ -99,18 +120,25 @@ contagem[chave]++
 
 let tabela=document.getElementById("tabela")
 
-tabela.innerHTML="<tr><th>Escola</th><th>Turno</th><th>Vagas</th></tr>"
+tabela.innerHTML="<tr><th>Escola</th><th>Turno</th><th>Natureza</th><th>Quantidade de vagas</th></tr>"
 
 for(let chave in contagem){
 
-let partes=chave.split("-")
+let partes=chave.split("|")
+
+let escola=partes[0]
+let turno=partes[1]
+let natureza=partes[2]
 
 tabela.innerHTML+=`
+
 <tr>
-<td>${partes[0]}</td>
-<td>${partes[1]}</td>
+<td>${escola}</td>
+<td>${turno}</td>
+<td>${natureza}</td>
 <td>${contagem[chave]}</td>
 </tr>
+
 `
 
 }
