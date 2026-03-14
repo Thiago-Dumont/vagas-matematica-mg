@@ -1,183 +1,110 @@
-<script>
+<!DOCTYPE html>
+<html lang="pt-br">
 
-let dados=[]
-let dadosFiltrados=[]
+<head>
 
-function animarNumero(id,valor){
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-let el=document.getElementById(id)
+<title>Painel de Vagas Matemática - Metropolitana C</title>
 
-let atual=0
-let passo=valor/30
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
-let intervalo=setInterval(()=>{
+<style>
 
-atual+=passo
+body{
+margin:0;
+font-family:Segoe UI, Arial;
+color:white;
 
-if(atual>=valor){
+background:
+radial-gradient(circle at 20% 20%, #1a3cff 0%, transparent 40%),
+radial-gradient(circle at 80% 40%, #8a2be2 0%, transparent 40%),
+#050a1f;
 
-atual=valor
-clearInterval(intervalo)
+background-attachment:fixed;
+}
+
+header{
+
+padding:25px 30px;
+font-size:22px;
+font-weight:600;
+
+background:rgba(255,255,255,0.05);
+backdrop-filter:blur(10px);
+
+border-bottom:1px solid rgba(255,255,255,0.1);
 
 }
 
-el.innerText=Math.floor(atual)
+.container{
 
-},20)
-
-}
-
-async function carregar(){
-
-let resp=await fetch("vagas_metropolitana_c.xlsx")
-
-let buffer=await resp.arrayBuffer()
-
-let workbook=XLSX.read(buffer)
-
-let sheet=workbook.Sheets[workbook.SheetNames[0]]
-
-let linhas=XLSX.utils.sheet_to_json(sheet)
-
-for(let linha of linhas){
-
-dados.push({
-
-escola:linha.Escola,
-turno:linha.Turno,
-natureza:linha.Natureza,
-cidade:linha.Cidade,
-ch:linha.CH
-
-})
+padding:30px;
+max-width:1400px;
+margin:auto;
 
 }
 
-filtrar()
+.cards{
+
+display:flex;
+gap:20px;
+margin-bottom:25px;
+flex-wrap:wrap;
 
 }
 
-function filtrar(){
+.card{
 
-let busca=document.getElementById("busca").value.toLowerCase()
-let turno=document.getElementById("turno").value
-let natureza=document.getElementById("natureza").value
+flex:1;
+min-width:220px;
 
-let total=0
-let cargo=0
-let sub=0
+padding:25px;
+border-radius:12px;
 
-let contagem={}
-let ranking={}
+background:linear-gradient(135deg,#1b3cff,#7a30ff);
 
-dadosFiltrados=[]
-
-for(let d of dados){
-
-if(busca && !d.escola.toLowerCase().includes(busca)) continue
-if(turno!="todos" && d.turno!=turno) continue
-if(natureza!="todos" && d.natureza!=natureza) continue
-
-dadosFiltrados.push(d)
-
-total++
-
-if(d.natureza=="Cargo Vago") cargo++
-if(d.natureza=="Substituição") sub++
-
-let chave=d.escola+"|"+d.cidade+"|"+d.turno+"|"+d.natureza+"|"+d.ch
-
-if(!contagem[chave]) contagem[chave]=0
-contagem[chave]++
-
-if(!ranking[d.escola]) ranking[d.escola]=0
-ranking[d.escola]++
+box-shadow:0 10px 25px rgba(0,0,0,0.4);
 
 }
 
-animarNumero("total",total)
-animarNumero("cargo",cargo)
-animarNumero("sub",sub)
+.card h2{
 
-let tabela=document.getElementById("tabela")
-
-tabela.innerHTML=`
-<tr>
-<th>Escola</th>
-<th>Cidade</th>
-<th>Turno</th>
-<th>Natureza</th>
-<th>CH</th>
-<th>Vagas</th>
-</tr>
-`
-
-for(let chave in contagem){
-
-let p=chave.split("|")
-
-let classe=p[3]=="Cargo Vago"?"cargo":"substituicao"
-
-tabela.innerHTML+=`
-<tr>
-<td>${p[0]}</td>
-<td>${p[1]}</td>
-<td>${p[2]}</td>
-<td><span class="badge ${classe}">${p[3]}</span></td>
-<td>${p[4]}</td>
-<td>${contagem[chave]}</td>
-</tr>
-`
+font-size:42px;
+margin:0;
 
 }
 
-let rankingDiv=document.getElementById("ranking")
+.filters{
 
-rankingDiv.innerHTML=""
-
-let ordem=Object.entries(ranking).sort((a,b)=>b[1]-a[1])
-
-let max=ordem[0] ? ordem[0][1] : 1
-
-for(let r of ordem.slice(0,10)){
-
-let largura=(r[1]/max)*100
-
-rankingDiv.innerHTML+=`
-
-<div style="margin-bottom:14px">
-
-<div style="display:flex;justify-content:space-between;font-size:13px">
-<span>${r[0]}</span>
-<span>${r[1]}</span>
-</div>
-
-<div class="rank-bar" style="width:${largura}%"></div>
-
-</div>
-
-`
+display:flex;
+gap:15px;
+flex-wrap:wrap;
+margin-bottom:25px;
 
 }
 
+.filters input,
+.filters select{
+
+padding:10px;
+
+background:rgba(255,255,255,0.08);
+border:1px solid rgba(255,255,255,0.2);
+
+color:white;
+border-radius:6px;
+
 }
 
-function exportar(){
+.filters button{
 
-let ws=XLSX.utils.json_to_sheet(dadosFiltrados)
+padding:10px 16px;
 
-let wb=XLSX.utils.book_new()
+background:linear-gradient(135deg,#2e7cff,#9b3dff);
 
-XLSX.utils.book_append_sheet(wb,ws,"resultado")
+border:none;
+border-radius:6px;
 
-XLSX.writeFile(wb,"vagas_filtradas.xlsx")
-
-}
-
-document.getElementById("busca").oninput=filtrar
-document.getElementById("turno").onchange=filtrar
-document.getElementById("natureza").onchange=filtrar
-
-carregar()
-
-</script>
+color
