@@ -11,6 +11,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <style>
@@ -51,6 +52,11 @@ box-shadow:0 2px 6px rgba(0,0,0,0.1);
 text-align:center;
 }
 
+.card h3{
+margin:0;
+font-size:28px;
+}
+
 .badge{
 color:white;
 padding:4px 10px;
@@ -78,8 +84,12 @@ padding:10px;
 border-bottom:1px solid #ddd;
 }
 
+th{
+background:#eee;
+}
+
 #map{
-height:500px;
+height:450px;
 margin-top:30px;
 border-radius:10px;
 }
@@ -101,17 +111,17 @@ border-radius:10px;
 <div class="cards">
 
 <div class="card">
-<h2 id="total">0</h2>
+<h3 id="total">0</h3>
 <p>Total de vagas</p>
 </div>
 
 <div class="card">
-<h2 id="cargo">0</h2>
+<h3 id="cargo">0</h3>
 <p>Cargo Vago</p>
 </div>
 
 <div class="card">
-<h2 id="sub">0</h2>
+<h3 id="sub">0</h3>
 <p>Substituição</p>
 </div>
 
@@ -137,10 +147,8 @@ border-radius:10px;
 <script>
 
 let dados=[]
-
-let mapa=L.map('map').setView([-19.92,-44.05],11)
-
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapa)
+let coordenadas={}
+let mapa
 
 async function carregar(){
 
@@ -154,24 +162,45 @@ let sheet=workbook.Sheets[workbook.SheetNames[0]]
 
 let linhas=XLSX.utils.sheet_to_json(sheet,{header:1})
 
+for(let i=1;i<linhas.length;i++){
+
+dados.push({
+escola:linhas[i][1],
+turno:linhas[i][3],
+natureza:linhas[i][4]
+})
+
+}
+
+let respCoord=await fetch("escolas.json")
+
+let lista=await respCoord.json()
+
+for(let e of lista){
+
+coordenadas[e.nome]=[e.lat,e.lon]
+
+}
+
+gerar()
+
+}
+
+function gerar(){
+
 let total=0
 let cargo=0
 let sub=0
-
 let contagem={}
 
-for(let i=1;i<linhas.length;i++){
-
-let escola=linhas[i][1]
-let turno=linhas[i][3]
-let natureza=linhas[i][4]
+for(let d of dados){
 
 total++
 
-if(natureza=="Cargo Vago") cargo++
-if(natureza=="Substituição") sub++
+if(d.natureza=="Cargo Vago") cargo++
+if(d.natureza=="Substituição") sub++
 
-let chave=escola+"|"+turno+"|"+natureza
+let chave=d.escola+"|"+d.turno+"|"+d.natureza
 
 if(!contagem[chave]) contagem[chave]=0
 
@@ -184,6 +213,8 @@ document.getElementById("cargo").innerText=cargo
 document.getElementById("sub").innerText=sub
 
 let tabela=document.getElementById("tabela")
+
+tabela.innerHTML="<tr><th>Escola</th><th>Turno</th><th>Natureza</th><th>Vagas</th></tr>"
 
 for(let chave in contagem){
 
@@ -202,27 +233,32 @@ tabela.innerHTML+=`
 
 `
 
-await localizarEscola(p[0],contagem[chave])
+}
+
+criarMapa(contagem)
 
 }
 
+function criarMapa(contagem){
+
+mapa=L.map('map').setView([-19.92,-44.05],11)
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapa)
+
+for(let chave in contagem){
+
+let p=chave.split("|")
+
+let escola=p[0]
+
+if(coordenadas[escola]){
+
+let c=coordenadas[escola]
+
+L.marker(c).addTo(mapa)
+.bindPopup("<b>"+escola+"</b><br>"+contagem[chave]+" vagas")
+
 }
-
-async function localizarEscola(nome,vagas){
-
-let url=`https://nominatim.openstreetmap.org/search?format=json&q=${nome}+Minas+Gerais`
-
-let resp=await fetch(url)
-
-let dados=await resp.json()
-
-if(dados.length>0){
-
-let lat=dados[0].lat
-let lon=dados[0].lon
-
-L.marker([lat,lon]).addTo(mapa)
-.bindPopup(`<b>${nome}</b><br>${vagas} vagas`)
 
 }
 
