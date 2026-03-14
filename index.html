@@ -6,91 +6,39 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Painel de Vagas Matemática</title>
+<title>Painel de Vagas Matemática MG</title>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
 <style>
 
-/* CORES GAMEFICADAS */
-
 :root{
-
 --roxo:#6c2bd9;
---roxo2:#8b5cf6;
 --azul:#2563eb;
 --verde:#22c55e;
 --laranja:#f97316;
---bg:#f3f4f6;
-
 }
 
-/* FUNDO */
+/* FUNDO GAMIFICADO */
 
 body{
 font-family:system-ui;
 margin:0;
 background:linear-gradient(135deg,var(--roxo),var(--azul));
 min-height:100vh;
-color:#222;
-}
-
-/* POPUP */
-
-#popup{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.7);
-display:flex;
-align-items:center;
-justify-content:center;
-z-index:999;
-}
-
-.popup-box{
-background:white;
-padding:40px;
-border-radius:16px;
-text-align:center;
-max-width:420px;
-width:90%;
-box-shadow:0 10px 25px rgba(0,0,0,0.4);
-}
-
-.popup-box h2{
-color:var(--roxo);
-}
-
-.popup-box button{
-margin-top:20px;
-padding:12px 25px;
-font-size:16px;
-background:var(--roxo);
 color:white;
-border:none;
-border-radius:10px;
-cursor:pointer;
-transition:0.2s;
-}
-
-.popup-box button:hover{
-transform:scale(1.05);
 }
 
 /* HEADER */
 
 header{
 text-align:center;
-color:white;
 padding:30px;
 }
 
 header h1{
 margin:0;
-font-size:32px;
+font-size:30px;
 }
 
 /* CONTAINER */
@@ -118,7 +66,7 @@ border-radius:16px;
 color:white;
 font-weight:bold;
 text-align:center;
-box-shadow:0 8px 20px rgba(0,0,0,0.2);
+box-shadow:0 10px 25px rgba(0,0,0,0.3);
 }
 
 .card:nth-child(1){
@@ -150,7 +98,7 @@ margin-bottom:20px;
 .filters input,
 .filters select,
 .filters button{
-padding:12px;
+padding:10px;
 font-size:16px;
 border-radius:10px;
 border:none;
@@ -168,9 +116,9 @@ table{
 width:100%;
 border-collapse:collapse;
 background:white;
+color:black;
 border-radius:12px;
 overflow:hidden;
-box-shadow:0 8px 20px rgba(0,0,0,0.2);
 }
 
 th,td{
@@ -206,8 +154,8 @@ background:var(--laranja);
 margin-top:30px;
 }
 
-.rank table{
-margin-top:10px;
+.rank h2{
+color:white;
 }
 
 </style>
@@ -215,22 +163,6 @@ margin-top:10px;
 </head>
 
 <body>
-
-<div id="popup">
-
-<div class="popup-box">
-
-<h2>🎉 Parabéns!!!</h2>
-
-<p>Você desbloqueou o <b>Painel de Vagas</b>.</p>
-
-<p>Explore as vagas disponíveis.</p>
-
-<button onclick="fecharPopup()">Começar missão</button>
-
-</div>
-
-</div>
 
 <header>
 
@@ -311,10 +243,6 @@ margin-top:10px;
 
 <script>
 
-function fecharPopup(){
-document.getElementById("popup").style.display="none"
-}
-
 let dados=[]
 let dadosFiltrados=[]
 
@@ -334,7 +262,7 @@ for(let i=1;i<linhas.length;i++){
 
 dados.push({
 escola:linhas[i][1],
-turno:linas[i][3],
+turno:linhas[i][3],
 natureza:linhas[i][4]
 })
 
