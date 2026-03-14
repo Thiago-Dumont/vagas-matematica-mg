@@ -6,46 +6,33 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Painel de Vagas Matemática MG</title>
+<title>Painel de Vagas Matemática</title>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
 <style>
 
+/* CORES GAMEFICADAS */
+
 :root{
---cor-primaria:#1f3c88;
---cargo:#27ae60;
---sub:#e67e22;
+
+--roxo:#6c2bd9;
+--roxo2:#8b5cf6;
+--azul:#2563eb;
+--verde:#22c55e;
+--laranja:#f97316;
+--bg:#f3f4f6;
+
 }
+
+/* FUNDO */
 
 body{
 font-family:system-ui;
 margin:0;
-background:#f4f6f9;
-transition:0.3s;
-}
-
-/* MODO ESCURO */
-
-@media (prefers-color-scheme: dark){
-
-body{
-background:#121212;
-color:white;
-}
-
-table{
-background:#1f1f1f;
-}
-
-th{
-background:#333;
-}
-
-.card{
-background:#1f1f1f;
-}
-
+background:linear-gradient(135deg,var(--roxo),var(--azul));
+min-height:100vh;
+color:#222;
 }
 
 /* POPUP */
@@ -66,37 +53,44 @@ z-index:999;
 .popup-box{
 background:white;
 padding:40px;
-border-radius:14px;
+border-radius:16px;
 text-align:center;
 max-width:420px;
 width:90%;
-box-shadow:0 5px 15px rgba(0,0,0,0.3);
-animation:entrada 0.5s;
+box-shadow:0 10px 25px rgba(0,0,0,0.4);
 }
 
-@keyframes entrada{
-from{transform:scale(0.7)}
-to{transform:scale(1)}
+.popup-box h2{
+color:var(--roxo);
 }
 
 .popup-box button{
 margin-top:20px;
 padding:12px 25px;
 font-size:16px;
-background:var(--cor-primaria);
+background:var(--roxo);
 color:white;
 border:none;
-border-radius:8px;
+border-radius:10px;
 cursor:pointer;
+transition:0.2s;
+}
+
+.popup-box button:hover{
+transform:scale(1.05);
 }
 
 /* HEADER */
 
 header{
-background:var(--cor-primaria);
-color:white;
-padding:20px;
 text-align:center;
+color:white;
+padding:30px;
+}
+
+header h1{
+margin:0;
+font-size:32px;
 }
 
 /* CONTAINER */
@@ -119,16 +113,29 @@ margin-bottom:20px;
 .card{
 flex:1;
 min-width:200px;
-background:white;
-padding:20px;
-border-radius:12px;
-box-shadow:0 3px 8px rgba(0,0,0,0.1);
+padding:25px;
+border-radius:16px;
+color:white;
+font-weight:bold;
 text-align:center;
+box-shadow:0 8px 20px rgba(0,0,0,0.2);
+}
+
+.card:nth-child(1){
+background:linear-gradient(45deg,#6366f1,#8b5cf6);
+}
+
+.card:nth-child(2){
+background:linear-gradient(45deg,#22c55e,#4ade80);
+}
+
+.card:nth-child(3){
+background:linear-gradient(45deg,#f97316,#fb923c);
 }
 
 .card h2{
+font-size:36px;
 margin:0;
-font-size:32px;
 }
 
 /* FILTROS */
@@ -143,8 +150,16 @@ margin-bottom:20px;
 .filters input,
 .filters select,
 .filters button{
-padding:10px;
+padding:12px;
 font-size:16px;
+border-radius:10px;
+border:none;
+}
+
+.filters button{
+background:var(--roxo);
+color:white;
+cursor:pointer;
 }
 
 /* TABELA */
@@ -153,37 +168,46 @@ table{
 width:100%;
 border-collapse:collapse;
 background:white;
+border-radius:12px;
+overflow:hidden;
+box-shadow:0 8px 20px rgba(0,0,0,0.2);
 }
 
 th,td{
-padding:10px;
-border-bottom:1px solid #ddd;
+padding:12px;
+border-bottom:1px solid #eee;
 }
 
 th{
-background:#eee;
+background:#f3f4f6;
 }
 
 /* BADGES */
 
 .badge{
-color:white;
-padding:4px 10px;
-border-radius:8px;
+padding:5px 12px;
+border-radius:20px;
 font-size:12px;
+color:white;
 font-weight:bold;
 }
 
 .cargo{
-background:var(--cargo);
+background:var(--verde);
 }
 
 .substituicao{
-background:var(--sub);
+background:var(--laranja);
 }
+
+/* RANKING */
 
 .rank{
 margin-top:30px;
+}
+
+.rank table{
+margin-top:10px;
 }
 
 </style>
@@ -192,17 +216,15 @@ margin-top:30px;
 
 <body>
 
-<!-- POPUP -->
-
 <div id="popup">
 
 <div class="popup-box">
 
 <h2>🎉 Parabéns!!!</h2>
 
-<p>Você desbloqueou o <b>Painel de Vagas de Matemática</b>.</p>
+<p>Você desbloqueou o <b>Painel de Vagas</b>.</p>
 
-<p>Sua missão é explorar as vagas disponíveis.</p>
+<p>Explore as vagas disponíveis.</p>
 
 <button onclick="fecharPopup()">Começar missão</button>
 
@@ -212,7 +234,7 @@ margin-top:30px;
 
 <header>
 
-<h1>Painel de Vagas de Matemática</h1>
+<h1>🎓 Painel de Vagas de Matemática</h1>
 <p>Rede Estadual de Minas Gerais</p>
 
 </header>
@@ -243,7 +265,7 @@ margin-top:30px;
 <input type="text" id="busca" placeholder="Buscar escola">
 
 <select id="turno">
-<option value="todos">Todos os turnos</option>
+<option value="todos">Todos turnos</option>
 <option value="Manhã">Manhã</option>
 <option value="Tarde">Tarde</option>
 <option value="Noite">Noite</option>
@@ -272,7 +294,7 @@ margin-top:30px;
 
 <div class="rank">
 
-<h2>Ranking de escolas com mais vagas</h2>
+<h2>🏆 Ranking de escolas com mais vagas</h2>
 
 <table id="ranking">
 
@@ -312,7 +334,7 @@ for(let i=1;i<linhas.length;i++){
 
 dados.push({
 escola:linhas[i][1],
-turno:linhas[i][3],
+turno:linas[i][3],
 natureza:linhas[i][4]
 })
 
