@@ -6,7 +6,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Painel de Vagas Matemática - Metropolitana C</title>
+<title>Matemática - Metropolitana C</title>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
@@ -14,97 +14,383 @@
 
 body{
 margin:0;
-font-family:Segoe UI, Arial;
+font-family:Segoe UI,Arial;
 color:white;
 
 background:
 radial-gradient(circle at 20% 20%, #1a3cff 0%, transparent 40%),
 radial-gradient(circle at 80% 40%, #8a2be2 0%, transparent 40%),
 #050a1f;
-
-background-attachment:fixed;
 }
 
 header{
-
-padding:25px 30px;
+padding:25px;
 font-size:22px;
 font-weight:600;
-
 background:rgba(255,255,255,0.05);
-backdrop-filter:blur(10px);
-
 border-bottom:1px solid rgba(255,255,255,0.1);
-
 }
 
 .container{
-
 padding:30px;
 max-width:1400px;
 margin:auto;
-
 }
 
 .cards{
-
 display:flex;
 gap:20px;
 margin-bottom:25px;
 flex-wrap:wrap;
-
 }
 
 .card{
-
 flex:1;
-min-width:220px;
-
+min-width:200px;
 padding:25px;
 border-radius:12px;
-
 background:linear-gradient(135deg,#1b3cff,#7a30ff);
-
-box-shadow:0 10px 25px rgba(0,0,0,0.4);
-
 }
 
 .card h2{
-
 font-size:42px;
 margin:0;
-
 }
 
 .filters{
-
 display:flex;
 gap:15px;
 flex-wrap:wrap;
 margin-bottom:25px;
-
 }
 
 .filters input,
 .filters select{
-
 padding:10px;
-
 background:rgba(255,255,255,0.08);
 border:1px solid rgba(255,255,255,0.2);
-
 color:white;
 border-radius:6px;
-
 }
 
 .filters button{
-
 padding:10px 16px;
-
 background:linear-gradient(135deg,#2e7cff,#9b3dff);
-
 border:none;
 border-radius:6px;
+color:white;
+cursor:pointer;
+}
 
-color
+.grid{
+display:grid;
+grid-template-columns:2fr 1fr;
+gap:25px;
+}
+
+.table-card,
+.rank-card{
+background:rgba(255,255,255,0.05);
+border-radius:10px;
+padding:18px;
+border:1px solid rgba(255,255,255,0.1);
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+th{
+text-align:left;
+padding:12px;
+border-bottom:1px solid rgba(255,255,255,0.2);
+}
+
+td{
+padding:10px;
+border-bottom:1px solid rgba(255,255,255,0.05);
+}
+
+.badge{
+padding:4px 10px;
+border-radius:20px;
+font-size:12px;
+}
+
+.cargo{
+background:#1aff8c;
+color:#052a17;
+}
+
+.substituicao{
+background:#ffc44d;
+color:#3d2600;
+}
+
+.rank-bar{
+height:8px;
+background:linear-gradient(90deg,#3a8bff,#b043ff);
+border-radius:5px;
+margin-top:4px;
+}
+
+@media(max-width:900px){
+.grid{grid-template-columns:1fr}
+.cards{flex-direction:column}
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+Matemática – Metropolitana C
+</header>
+
+<div class="container">
+
+<div class="cards">
+
+<div class="card">
+<h2 id="total">0</h2>
+<p>Total de vagas</p>
+</div>
+
+<div class="card">
+<h2 id="cargo">0</h2>
+<p>Cargo Vago</p>
+</div>
+
+<div class="card">
+<h2 id="sub">0</h2>
+<p>Substituição</p>
+</div>
+
+</div>
+
+<div class="filters">
+
+<input type="text" id="busca" placeholder="Buscar escola">
+
+<select id="turno">
+<option value="todos">Todos turnos</option>
+<option value="Manhã">Manhã</option>
+<option value="Tarde">Tarde</option>
+<option value="Noite">Noite</option>
+</select>
+
+<select id="natureza">
+<option value="todos">Todas naturezas</option>
+<option value="Cargo Vago">Cargo Vago</option>
+<option value="Substituição">Substituição</option>
+</select>
+
+<button onclick="exportar()">Exportar Excel</button>
+
+</div>
+
+<div class="grid">
+
+<div class="table-card">
+
+<table id="tabela">
+
+<tr>
+<th>Escola</th>
+<th>Cidade</th>
+<th>Turno</th>
+<th>Natureza</th>
+<th>CH</th>
+<th>Vagas</th>
+</tr>
+
+</table>
+
+</div>
+
+<div class="rank-card">
+
+<h3>Ranking de escolas</h3>
+
+<div id="ranking"></div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+let dados=[]
+let dadosFiltrados=[]
+
+async function carregar(){
+
+try{
+
+let resp=await fetch("vagas_matematica_metropolitana_c_com_cidade.xlsx")
+
+let buffer=await resp.arrayBuffer()
+
+let workbook=XLSX.read(buffer)
+
+let sheet=workbook.Sheets[workbook.SheetNames[0]]
+
+let linhas=XLSX.utils.sheet_to_json(sheet)
+
+for(let linha of linhas){
+
+dados.push({
+
+escola:linha.Escola,
+cidade:linha.Cidade,
+turno:linha.Turno,
+natureza:linha.Natureza,
+ch:linha.CH
+
+})
+
+}
+
+filtrar()
+
+}catch(e){
+
+console.error("Erro ao carregar Excel",e)
+
+}
+
+}
+
+function filtrar(){
+
+let busca=document.getElementById("busca").value.toLowerCase()
+let turno=document.getElementById("turno").value
+let natureza=document.getElementById("natureza").value
+
+let total=0
+let cargo=0
+let sub=0
+
+let contagem={}
+let ranking={}
+
+dadosFiltrados=[]
+
+for(let d of dados){
+
+if(busca && !d.escola.toLowerCase().includes(busca)) continue
+if(turno!="todos" && d.turno!=turno) continue
+if(natureza!="todos" && d.natureza!=natureza) continue
+
+dadosFiltrados.push(d)
+
+total++
+
+if(d.natureza=="Cargo Vago") cargo++
+if(d.natureza=="Substituição") sub++
+
+let chave=d.escola+"|"+d.cidade+"|"+d.turno+"|"+d.natureza+"|"+d.ch
+
+if(!contagem[chave]) contagem[chave]=0
+contagem[chave]++
+
+if(!ranking[d.escola]) ranking[d.escola]=0
+ranking[d.escola]++
+
+}
+
+document.getElementById("total").innerText=total
+document.getElementById("cargo").innerText=cargo
+document.getElementById("sub").innerText=sub
+
+let tabela=document.getElementById("tabela")
+
+tabela.innerHTML=`
+<tr>
+<th>Escola</th>
+<th>Cidade</th>
+<th>Turno</th>
+<th>Natureza</th>
+<th>CH</th>
+<th>Vagas</th>
+</tr>
+`
+
+for(let chave in contagem){
+
+let p=chave.split("|")
+
+let classe=p[3]=="Cargo Vago"?"cargo":"substituicao"
+
+tabela.innerHTML+=`
+<tr>
+<td>${p[0]}</td>
+<td>${p[1]}</td>
+<td>${p[2]}</td>
+<td><span class="badge ${classe}">${p[3]}</span></td>
+<td>${p[4]}</td>
+<td>${contagem[chave]}</td>
+</tr>
+`
+
+}
+
+let rankingDiv=document.getElementById("ranking")
+
+rankingDiv.innerHTML=""
+
+let ordem=Object.entries(ranking).sort((a,b)=>b[1]-a[1])
+
+let max=ordem[0]?ordem[0][1]:1
+
+for(let r of ordem.slice(0,10)){
+
+let largura=(r[1]/max)*100
+
+rankingDiv.innerHTML+=`
+
+<div style="margin-bottom:14px">
+
+<div style="display:flex;justify-content:space-between;font-size:13px">
+<span>${r[0]}</span>
+<span>${r[1]}</span>
+</div>
+
+<div class="rank-bar" style="width:${largura}%"></div>
+
+</div>
+
+`
+
+}
+
+}
+
+function exportar(){
+
+let ws=XLSX.utils.json_to_sheet(dadosFiltrados)
+
+let wb=XLSX.utils.book_new()
+
+XLSX.utils.book_append_sheet(wb,ws,"resultado")
+
+XLSX.writeFile(wb,"vagas_filtradas.xlsx")
+
+}
+
+document.getElementById("busca").oninput=filtrar
+document.getElementById("turno").onchange=filtrar
+document.getElementById("natureza").onchange=filtrar
+
+carregar()
+
+</script>
+
+</body>
+
+</html>
