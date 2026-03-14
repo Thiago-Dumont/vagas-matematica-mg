@@ -12,13 +12,43 @@
 
 <style>
 
-body{
-font-family:system-ui,Arial;
-margin:0;
-background:#f4f6f9;
+:root{
+--cor-primaria:#1f3c88;
+--cargo:#27ae60;
+--sub:#e67e22;
 }
 
-/* POPUP GAMEFICADO */
+body{
+font-family:system-ui;
+margin:0;
+background:#f4f6f9;
+transition:0.3s;
+}
+
+/* MODO ESCURO */
+
+@media (prefers-color-scheme: dark){
+
+body{
+background:#121212;
+color:white;
+}
+
+table{
+background:#1f1f1f;
+}
+
+th{
+background:#333;
+}
+
+.card{
+background:#1f1f1f;
+}
+
+}
+
+/* POPUP */
 
 #popup{
 position:fixed;
@@ -41,46 +71,35 @@ text-align:center;
 max-width:420px;
 width:90%;
 box-shadow:0 5px 15px rgba(0,0,0,0.3);
-animation:scalein 0.4s;
+animation:entrada 0.5s;
 }
 
-@keyframes scalein{
+@keyframes entrada{
 from{transform:scale(0.7)}
 to{transform:scale(1)}
-}
-
-.popup-box h2{
-margin-top:0;
-font-size:28px;
-}
-
-.popup-box p{
-font-size:16px;
 }
 
 .popup-box button{
 margin-top:20px;
 padding:12px 25px;
 font-size:16px;
-background:#1f3c88;
+background:var(--cor-primaria);
 color:white;
 border:none;
 border-radius:8px;
 cursor:pointer;
 }
 
-.popup-box button:hover{
-background:#162d63;
-}
-
-/* CABEÇALHO */
+/* HEADER */
 
 header{
-background:#1f3c88;
+background:var(--cor-primaria);
 color:white;
 padding:20px;
 text-align:center;
 }
+
+/* CONTAINER */
 
 .container{
 max-width:1200px;
@@ -109,7 +128,7 @@ text-align:center;
 
 .card h2{
 margin:0;
-font-size:30px;
+font-size:32px;
 }
 
 /* FILTROS */
@@ -121,7 +140,9 @@ gap:10px;
 margin-bottom:20px;
 }
 
-.filters input, .filters select{
+.filters input,
+.filters select,
+.filters button{
 padding:10px;
 font-size:16px;
 }
@@ -154,11 +175,11 @@ font-weight:bold;
 }
 
 .cargo{
-background:#27ae60;
+background:var(--cargo);
 }
 
 .substituicao{
-background:#e67e22;
+background:var(--sub);
 }
 
 .rank{
@@ -181,7 +202,7 @@ margin-top:30px;
 
 <p>Você desbloqueou o <b>Painel de Vagas de Matemática</b>.</p>
 
-<p>Explore as vagas e complete sua missão.</p>
+<p>Sua missão é explorar as vagas disponíveis.</p>
 
 <button onclick="fecharPopup()">Começar missão</button>
 
@@ -222,21 +243,19 @@ margin-top:30px;
 <input type="text" id="busca" placeholder="Buscar escola">
 
 <select id="turno">
-
 <option value="todos">Todos os turnos</option>
 <option value="Manhã">Manhã</option>
 <option value="Tarde">Tarde</option>
 <option value="Noite">Noite</option>
-
 </select>
 
 <select id="natureza">
-
 <option value="todos">Todas naturezas</option>
 <option value="Cargo Vago">Cargo Vago</option>
 <option value="Substituição">Substituição</option>
-
 </select>
+
+<button onclick="exportar()">Exportar Excel</button>
 
 </div>
 
@@ -275,6 +294,7 @@ document.getElementById("popup").style.display="none"
 }
 
 let dados=[]
+let dadosFiltrados=[]
 
 async function carregar(){
 
@@ -305,9 +325,7 @@ filtrar()
 function filtrar(){
 
 let busca=document.getElementById("busca").value.toLowerCase()
-
 let turno=document.getElementById("turno").value
-
 let natureza=document.getElementById("natureza").value
 
 let total=0
@@ -317,11 +335,15 @@ let sub=0
 let contagem={}
 let ranking={}
 
+dadosFiltrados=[]
+
 for(let d of dados){
 
 if(busca && !d.escola.toLowerCase().includes(busca)) continue
 if(turno!="todos" && d.turno!=turno) continue
 if(natureza!="todos" && d.natureza!=natureza) continue
+
+dadosFiltrados.push(d)
 
 total++
 
@@ -331,11 +353,9 @@ if(d.natureza=="Substituição") sub++
 let chave=d.escola+"|"+d.turno+"|"+d.natureza
 
 if(!contagem[chave]) contagem[chave]=0
-
 contagem[chave]++
 
 if(!ranking[d.escola]) ranking[d.escola]=0
-
 ranking[d.escola]++
 
 }
@@ -355,14 +375,12 @@ let p=chave.split("|")
 let classe=p[2]=="Cargo Vago"?"cargo":"substituicao"
 
 tabela.innerHTML+=`
-
 <tr>
 <td>${p[0]}</td>
 <td>${p[1]}</td>
 <td><span class="badge ${classe}">${p[2]}</span></td>
 <td>${contagem[chave]}</td>
 </tr>
-
 `
 
 }
@@ -383,6 +401,18 @@ rankingTabela.innerHTML+=`
 `
 
 }
+
+}
+
+function exportar(){
+
+let ws=XLSX.utils.json_to_sheet(dadosFiltrados)
+
+let wb=XLSX.utils.book_new()
+
+XLSX.utils.book_append_sheet(wb,ws,"resultado")
+
+XLSX.writeFile(wb,"vagas_filtradas.xlsx")
 
 }
 
