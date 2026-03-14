@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
 
 <meta charset="UTF-8">
@@ -16,7 +15,6 @@ body{
 margin:0;
 font-family:Segoe UI,Arial;
 color:white;
-
 background:
 radial-gradient(circle at 20% 20%, #1a3cff 0%, transparent 40%),
 radial-gradient(circle at 80% 40%, #8a2be2 0%, transparent 40%),
@@ -53,13 +51,13 @@ background:linear-gradient(135deg,#1b3cff,#7a30ff);
 }
 
 .card h2{
-font-size:42px;
+font-size:40px;
 margin:0;
 }
 
 .filters{
 display:flex;
-gap:15px;
+gap:12px;
 flex-wrap:wrap;
 margin-bottom:25px;
 }
@@ -175,6 +173,10 @@ Matemática – Metropolitana C
 
 <input type="text" id="busca" placeholder="Buscar escola">
 
+<select id="cidade">
+<option value="todas">Todas cidades</option>
+</select>
+
 <select id="turno">
 <option value="todos">Todos turnos</option>
 <option value="Manhã">Manhã</option>
@@ -197,7 +199,6 @@ Matemática – Metropolitana C
 <div class="table-card">
 
 <table id="tabela">
-
 <tr>
 <th>Escola</th>
 <th>Cidade</th>
@@ -206,7 +207,6 @@ Matemática – Metropolitana C
 <th>CH</th>
 <th>Vagas</th>
 </tr>
-
 </table>
 
 </div>
@@ -242,26 +242,34 @@ let sheet=workbook.Sheets[workbook.SheetNames[0]]
 
 let linhas=XLSX.utils.sheet_to_json(sheet)
 
+let cidades=new Set()
+
 for(let linha of linhas){
 
 dados.push({
-
 escola:linha.Escola,
 cidade:linha.Cidade,
 turno:linha.Turno,
 natureza:linha.Natureza,
 ch:linha.CH
-
 })
 
+cidades.add(linha.Cidade)
+
+}
+
+let selectCidade=document.getElementById("cidade")
+
+cidades=[...cidades].sort()
+
+for(let c of cidades){
+selectCidade.innerHTML+=`<option value="${c}">${c}</option>`
 }
 
 filtrar()
 
 }catch(e){
-
 console.error("Erro ao carregar Excel",e)
-
 }
 
 }
@@ -269,6 +277,7 @@ console.error("Erro ao carregar Excel",e)
 function filtrar(){
 
 let busca=document.getElementById("busca").value.toLowerCase()
+let cidade=document.getElementById("cidade").value
 let turno=document.getElementById("turno").value
 let natureza=document.getElementById("natureza").value
 
@@ -284,6 +293,7 @@ dadosFiltrados=[]
 for(let d of dados){
 
 if(busca && !d.escola.toLowerCase().includes(busca)) continue
+if(cidade!="todas" && d.cidade!=cidade) continue
 if(turno!="todos" && d.turno!=turno) continue
 if(natureza!="todos" && d.natureza!=natureza) continue
 
@@ -353,18 +363,13 @@ for(let r of ordem.slice(0,10)){
 let largura=(r[1]/max)*100
 
 rankingDiv.innerHTML+=`
-
 <div style="margin-bottom:14px">
-
 <div style="display:flex;justify-content:space-between;font-size:13px">
 <span>${r[0]}</span>
 <span>${r[1]}</span>
 </div>
-
 <div class="rank-bar" style="width:${largura}%"></div>
-
 </div>
-
 `
 
 }
@@ -386,11 +391,11 @@ XLSX.writeFile(wb,"vagas_filtradas.xlsx")
 document.getElementById("busca").oninput=filtrar
 document.getElementById("turno").onchange=filtrar
 document.getElementById("natureza").onchange=filtrar
+document.getElementById("cidade").onchange=filtrar
 
 carregar()
 
 </script>
 
 </body>
-
 </html>
