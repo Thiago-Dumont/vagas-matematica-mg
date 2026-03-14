@@ -6,18 +6,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Painel de Vagas Matemática</title>
+<title>Painel de Vagas Matemática MG</title>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <style>
 
 body{
-font-family:Arial;
+font-family:system-ui,Arial;
 margin:0;
 background:#f4f6f9;
 }
@@ -47,14 +43,41 @@ flex:1;
 min-width:200px;
 background:white;
 padding:20px;
-border-radius:10px;
-box-shadow:0 2px 6px rgba(0,0,0,0.1);
+border-radius:12px;
+box-shadow:0 3px 8px rgba(0,0,0,0.1);
 text-align:center;
 }
 
-.card h3{
+.card h2{
 margin:0;
-font-size:28px;
+font-size:30px;
+}
+
+.filters{
+display:flex;
+flex-wrap:wrap;
+gap:10px;
+margin-bottom:20px;
+}
+
+.filters input, .filters select{
+padding:10px;
+font-size:16px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+background:white;
+}
+
+th,td{
+padding:10px;
+border-bottom:1px solid #ddd;
+}
+
+th{
+background:#eee;
 }
 
 .badge{
@@ -73,25 +96,8 @@ background:#27ae60;
 background:#e67e22;
 }
 
-table{
-width:100%;
-border-collapse:collapse;
-background:white;
-}
-
-th,td{
-padding:10px;
-border-bottom:1px solid #ddd;
-}
-
-th{
-background:#eee;
-}
-
-#map{
-height:450px;
+.rank{
 margin-top:30px;
-border-radius:10px;
 }
 
 </style>
@@ -103,6 +109,7 @@ border-radius:10px;
 <header>
 
 <h1>Painel de Vagas de Matemática</h1>
+<p>Rede Estadual de Minas Gerais</p>
 
 </header>
 
@@ -111,19 +118,42 @@ border-radius:10px;
 <div class="cards">
 
 <div class="card">
-<h3 id="total">0</h3>
+<h2 id="total">0</h2>
 <p>Total de vagas</p>
 </div>
 
 <div class="card">
-<h3 id="cargo">0</h3>
+<h2 id="cargo">0</h2>
 <p>Cargo Vago</p>
 </div>
 
 <div class="card">
-<h3 id="sub">0</h3>
+<h2 id="sub">0</h2>
 <p>Substituição</p>
 </div>
+
+</div>
+
+<div class="filters">
+
+<input type="text" id="busca" placeholder="Buscar escola">
+
+<select id="turno">
+
+<option value="todos">Todos os turnos</option>
+<option value="Manhã">Manhã</option>
+<option value="Tarde">Tarde</option>
+<option value="Noite">Noite</option>
+
+</select>
+
+<select id="natureza">
+
+<option value="todos">Todas naturezas</option>
+<option value="Cargo Vago">Cargo Vago</option>
+<option value="Substituição">Substituição</option>
+
+</select>
 
 </div>
 
@@ -138,25 +168,34 @@ border-radius:10px;
 
 </table>
 
-<h2>Mapa das escolas</h2>
+<div class="rank">
 
-<div id="map"></div>
+<h2>Ranking de escolas com mais vagas</h2>
+
+<table id="ranking">
+
+<tr>
+<th>Escola</th>
+<th>Total</th>
+</tr>
+
+</table>
+
+</div>
 
 </div>
 
 <script>
 
 let dados=[]
-let coordenadas={}
-let mapa
 
 async function carregar(){
 
-let respExcel=await fetch("vagas_metropolitanaC_2026_corrigido (1).xlsx")
+let resp=await fetch("vagas_metropolitanaC_2026_corrigido (1).xlsx")
 
-let dadosExcel=await respExcel.arrayBuffer()
+let buffer=await resp.arrayBuffer()
 
-let workbook=XLSX.read(dadosExcel)
+let workbook=XLSX.read(buffer)
 
 let sheet=workbook.Sheets[workbook.SheetNames[0]]
 
@@ -172,28 +211,30 @@ natureza:linhas[i][4]
 
 }
 
-let respCoord=await fetch("escolas.json")
-
-let lista=await respCoord.json()
-
-for(let e of lista){
-
-coordenadas[e.nome]=[e.lat,e.lon]
+filtrar()
 
 }
 
-gerar()
+function filtrar(){
 
-}
+let busca=document.getElementById("busca").value.toLowerCase()
 
-function gerar(){
+let turno=document.getElementById("turno").value
+
+let natureza=document.getElementById("natureza").value
 
 let total=0
 let cargo=0
 let sub=0
+
 let contagem={}
+let ranking={}
 
 for(let d of dados){
+
+if(busca && !d.escola.toLowerCase().includes(busca)) continue
+if(turno!="todos" && d.turno!=turno) continue
+if(natureza!="todos" && d.natureza!=natureza) continue
 
 total++
 
@@ -205,6 +246,10 @@ let chave=d.escola+"|"+d.turno+"|"+d.natureza
 if(!contagem[chave]) contagem[chave]=0
 
 contagem[chave]++
+
+if(!ranking[d.escola]) ranking[d.escola]=0
+
+ranking[d.escola]++
 
 }
 
@@ -223,46 +268,38 @@ let p=chave.split("|")
 let classe=p[2]=="Cargo Vago"?"cargo":"substituicao"
 
 tabela.innerHTML+=`
-
 <tr>
 <td>${p[0]}</td>
 <td>${p[1]}</td>
 <td><span class="badge ${classe}">${p[2]}</span></td>
 <td>${contagem[chave]}</td>
 </tr>
-
 `
 
 }
 
-criarMapa(contagem)
+let rankingTabela=document.getElementById("ranking")
 
-}
+rankingTabela.innerHTML="<tr><th>Escola</th><th>Total</th></tr>"
 
-function criarMapa(contagem){
+let ordem=Object.entries(ranking).sort((a,b)=>b[1]-a[1])
 
-mapa=L.map('map').setView([-19.92,-44.05],11)
+for(let r of ordem.slice(0,10)){
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapa)
-
-for(let chave in contagem){
-
-let p=chave.split("|")
-
-let escola=p[0]
-
-if(coordenadas[escola]){
-
-let c=coordenadas[escola]
-
-L.marker(c).addTo(mapa)
-.bindPopup("<b>"+escola+"</b><br>"+contagem[chave]+" vagas")
+rankingTabela.innerHTML+=`
+<tr>
+<td>${r[0]}</td>
+<td>${r[1]}</td>
+</tr>
+`
 
 }
 
 }
 
-}
+document.getElementById("busca").oninput=filtrar
+document.getElementById("turno").onchange=filtrar
+document.getElementById("natureza").onchange=filtrar
 
 carregar()
 
