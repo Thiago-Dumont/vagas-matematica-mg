@@ -18,6 +18,63 @@ margin:0;
 background:#f4f6f9;
 }
 
+/* POPUP GAMEFICADO */
+
+#popup{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.7);
+display:flex;
+align-items:center;
+justify-content:center;
+z-index:999;
+}
+
+.popup-box{
+background:white;
+padding:40px;
+border-radius:14px;
+text-align:center;
+max-width:420px;
+width:90%;
+box-shadow:0 5px 15px rgba(0,0,0,0.3);
+animation:scalein 0.4s;
+}
+
+@keyframes scalein{
+from{transform:scale(0.7)}
+to{transform:scale(1)}
+}
+
+.popup-box h2{
+margin-top:0;
+font-size:28px;
+}
+
+.popup-box p{
+font-size:16px;
+}
+
+.popup-box button{
+margin-top:20px;
+padding:12px 25px;
+font-size:16px;
+background:#1f3c88;
+color:white;
+border:none;
+border-radius:8px;
+cursor:pointer;
+}
+
+.popup-box button:hover{
+background:#162d63;
+}
+
+/* CABEÇALHO */
+
 header{
 background:#1f3c88;
 color:white;
@@ -30,6 +87,8 @@ max-width:1200px;
 margin:auto;
 padding:20px;
 }
+
+/* CARDS */
 
 .cards{
 display:flex;
@@ -53,6 +112,8 @@ margin:0;
 font-size:30px;
 }
 
+/* FILTROS */
+
 .filters{
 display:flex;
 flex-wrap:wrap;
@@ -64,6 +125,8 @@ margin-bottom:20px;
 padding:10px;
 font-size:16px;
 }
+
+/* TABELA */
 
 table{
 width:100%;
@@ -79,6 +142,8 @@ border-bottom:1px solid #ddd;
 th{
 background:#eee;
 }
+
+/* BADGES */
 
 .badge{
 color:white;
@@ -105,6 +170,24 @@ margin-top:30px;
 </head>
 
 <body>
+
+<!-- POPUP -->
+
+<div id="popup">
+
+<div class="popup-box">
+
+<h2>🎉 Parabéns!!!</h2>
+
+<p>Você desbloqueou o <b>Painel de Vagas de Matemática</b>.</p>
+
+<p>Explore as vagas e complete sua missão.</p>
+
+<button onclick="fecharPopup()">Começar missão</button>
+
+</div>
+
+</div>
 
 <header>
 
@@ -187,6 +270,10 @@ margin-top:30px;
 
 <script>
 
+function fecharPopup(){
+document.getElementById("popup").style.display="none"
+}
+
 let dados=[]
 
 async function carregar(){
@@ -268,12 +355,14 @@ let p=chave.split("|")
 let classe=p[2]=="Cargo Vago"?"cargo":"substituicao"
 
 tabela.innerHTML+=`
+
 <tr>
 <td>${p[0]}</td>
 <td>${p[1]}</td>
 <td><span class="badge ${classe}">${p[2]}</span></td>
 <td>${contagem[chave]}</td>
 </tr>
+
 `
 
 }
