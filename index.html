@@ -214,7 +214,6 @@ Matemática – Metropolitana C
 <div class="rank-card">
 
 <h3>Ranking de escolas</h3>
-
 <div id="ranking"></div>
 
 </div>
@@ -230,28 +229,47 @@ let dadosFiltrados=[]
 
 async function carregar(){
 
-try{
+let [respAntiga, respNova] = await Promise.all([
+fetch("tabela_antiga.xlsx"),
+fetch("tabela_nova.xlsx")
+])
 
-let resp=await fetch("vagas_matematica_metropolitana_c_com_cidade.xlsx")
+let bufferAntiga = await respAntiga.arrayBuffer()
+let bufferNova = await respNova.arrayBuffer()
 
-let buffer=await resp.arrayBuffer()
+let wbAntiga = XLSX.read(bufferAntiga)
+let wbNova = XLSX.read(bufferNova)
 
-let workbook=XLSX.read(buffer)
+let sheetAntiga = wbAntiga.Sheets[wbAntiga.SheetNames[0]]
+let sheetNova = wbNova.Sheets[wbNova.SheetNames[0]]
 
-let sheet=workbook.Sheets[workbook.SheetNames[0]]
+let linhasAntigas = XLSX.utils.sheet_to_json(sheetAntiga)
+let linhasNovas = XLSX.utils.sheet_to_json(sheetNova)
 
-let linhas=XLSX.utils.sheet_to_json(sheet)
+let mapa = {}
 
-let cidades=new Set()
+for(let n of linhasNovas){
+mapa[n.Escola] = n
+}
 
-for(let linha of linhas){
+const cidades = new Set()
+
+for(let linha of linhasAntigas){
+
+let escola = linha.Escola
+let ch = linha.CH
+
+if(mapa[linha.Escola]){
+if(mapa[linha.Escola].Escola) escola = mapa[linha.Escola].Escola
+if(mapa[linha.Escola].CH) ch = mapa[linha.Escola].CH
+}
 
 dados.push({
-escola:linha.Escola,
-cidade:linha.Cidade,
-turno:linha.Turno,
-natureza:linha.Natureza,
-ch:linha.CH
+escola: escola,
+cidade: linha.Cidade,
+turno: linha.Turno,
+natureza: linha.Natureza,
+ch: ch
 })
 
 cidades.add(linha.Cidade)
@@ -260,17 +278,13 @@ cidades.add(linha.Cidade)
 
 let selectCidade=document.getElementById("cidade")
 
-cidades=[...cidades].sort()
+let lista=[...cidades].sort()
 
-for(let c of cidades){
+for(let c of lista){
 selectCidade.innerHTML+=`<option value="${c}">${c}</option>`
 }
 
 filtrar()
-
-}catch(e){
-console.error("Erro ao carregar Excel",e)
-}
 
 }
 
@@ -334,7 +348,6 @@ tabela.innerHTML=`
 for(let chave in contagem){
 
 let p=chave.split("|")
-
 let classe=p[3]=="Cargo Vago"?"cargo":"substituicao"
 
 tabela.innerHTML+=`
@@ -351,11 +364,9 @@ tabela.innerHTML+=`
 }
 
 let rankingDiv=document.getElementById("ranking")
-
 rankingDiv.innerHTML=""
 
 let ordem=Object.entries(ranking).sort((a,b)=>b[1]-a[1])
-
 let max=ordem[0]?ordem[0][1]:1
 
 for(let r of ordem.slice(0,10)){
@@ -379,11 +390,9 @@ rankingDiv.innerHTML+=`
 function exportar(){
 
 let ws=XLSX.utils.json_to_sheet(dadosFiltrados)
-
 let wb=XLSX.utils.book_new()
 
 XLSX.utils.book_append_sheet(wb,ws,"resultado")
-
 XLSX.writeFile(wb,"vagas_filtradas.xlsx")
 
 }
