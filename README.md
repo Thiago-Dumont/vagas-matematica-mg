@@ -76,7 +76,7 @@ Mais do que organizar dados, a solução permite:
 
 ## Acesso ao painel
 
-https://lnkd.in/daGVvVrC
+https://thiago-dumont.github.io/vagas-matematica-mg/
 
 ## Estrutura do projeto
 
